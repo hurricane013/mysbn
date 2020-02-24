@@ -27,8 +27,8 @@ if ($result = $link->query($qr_last_name)) {
 $query_user_all_data = "SELECT * FROM `members` WHERE Mobile=".$_SESSION['SESSIONMOBILE']."";
 
 if ($res = $link->query($query_user_all_data)) {
-     while ($user_data_row = $res->fetch_assoc())  
-        { 
+     while ($user_data_row = $res->fetch_assoc())
+        {
          $FirstName = $user_data_row['FirstName'];
          $LastName = $user_data_row['LastName'];
          $Mobile = $user_data_row['Mobile'];
@@ -53,11 +53,15 @@ $link->close();
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <style>
         label {
           padding: 8px 0px 0px 0px;
         }
+        .social {height: 25px; width: 25px}
+    
     </style>
+    
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta property="og:description" content="Create your SBN Account for Free!">
@@ -90,18 +94,47 @@ var componentForm = {
 };
 
 function submitBTNClicked(){
-    
+
     /*console.log("good work, Vivek");*/
 
-  validationCheck();
-  console.log("validation are fulfilled...");
-  storingRecordInDB();
-
-  alert("Your record has been saved.");
+    validationCheck();
+    console.log("validation are fulfilled...");
+    storingRecordInDB();
+    console.log("Your record has been saved.");
     
-    window.location.href="http://localhost/mysbn/dashboard.php?SuccessID=";
+    showSuccessAlert();
+    hideSuccessAlert();
+    
+    
 
 }//submitBTNClickedEnds
+
+function sendMail (e) {
+  e.preventDefault();
+  // alert("PHPMailer/mail.php will be called from here...");
+  $.ajax({
+    type: "GET",
+    url: "PHPMailer/mail.php",
+    success: function (data) {
+      // alert("PHPMailer/mail.php called...");
+      $("#clicktoverify").text("Verification link sent");
+    }
+  });
+  return true;
+}
+
+function showSuccessAlert(){
+    $('#myAlert').fadeIn();
+}//showSucessAlertEnds
+
+  function hideSuccessAlert(){
+    console.log("in hide mode");
+    $(function () { 
+      
+        var duration = 2000; // 4 seconds
+        setTimeout(function () { $('#myAlert').fadeOut(); }, duration);
+    });
+}//hideSuccessAlertEnds
 
 function storingRecordInDB(){
 
@@ -115,7 +148,7 @@ function storingRecordInDB(){
   var city = document.getElementById("locality");
   var state = document.getElementById("administrative_area_level_1"); //
   var country_code = document.getElementById("country");  //
-  
+
   var file_upload_field = document.getElementById("fileToUpload");
   var strFileUpload = file_upload_field.value + "";
   var strFileUploadArr = strFileUpload.split("\\");
@@ -173,7 +206,6 @@ function validationCheck(){
   console.log("in validationCheck");
 
   validateOccupation();
-  //validateHeadline();
   validateEmail();
   validateLocation();
   validateFileToUpload();
@@ -183,7 +215,7 @@ function validationCheck(){
 function validateFileToUpload(){
   var file_upload_button = document.getElementById("fileToUpload");
   if(file_upload_button.value == ""){
-    alert("Please select your profile picture");
+    alert("Please select your Profile Pic");
   } else {
     // alert(document.getElementById("uploadForm"));
     document.getElementById("submit").click();
@@ -234,13 +266,13 @@ function fillStateCityCountry() {
   locationString = document.getElementById('autocomplete').value;
 
   var locationArr = locationString.split(',').map(function(item){
-   return item.trim(); 
+   return item.trim();
   });
   var lastIndex = locationArr.length - 1;
   var country = locationArr[lastIndex];
   var state = locationArr[lastIndex-1];
   var city = locationArr[lastIndex-2];
-  
+
   document.getElementById('locality').value = city;
   document.getElementById('administrative_area_level_1').value = state;
   document.getElementById('country').value = country;
@@ -319,11 +351,11 @@ function geolocate() {
       $("#targetLayer").html(data);
       console.log("image uploaded...");
     },
-    error: function(){console.log("work harder...");}           
+    error: function(){console.log("work harder...");}
     });
   }));
 });
-  
+
 </script>
 
   <body>
@@ -331,8 +363,15 @@ function geolocate() {
     <div class="content content-fixed content-auth">
       <div class="container">
         <div class="media align-items-stretch justify-content-center ht-100p">
-              
+
 <div class="card text-center">
+
+     <div style="display:none;" id="myAlert">
+        <div class="alert alert-success" role="alert" id="myAlert2">
+            Success! your details have been saved
+        </div>
+    </div>
+
     <div class="card-header">
     <nav>
       <div class="nav nav-tabs" id="nav-tab" role="tablist">
@@ -342,7 +381,7 @@ function geolocate() {
       </div>
 
     <div class="tab-content" id="nav-tabContent">
-    
+
       <div class="tab-pane fade show active" id="nav-pi" role="tabpanel" aria-labelledby="nav-pi-tab">
           <table class="table"><br><br>
         <tr>
@@ -350,12 +389,12 @@ function geolocate() {
           <th scope="col">
 
             <form action="upload.php"  id="uploadForm" method="post" enctype="multipart/form-data">
-                
+
                 <div style="text-align: center;">
                   <img src="<? echo $Profile_picture_path ?>" height="150px" width="150px" class="rounded-circle" alt="workharder"><br><br><br>
                 <input type="file" name="fileToUpload" id="fileToUpload" value="<? echo $Profile_picture_path ?>">
                 </div>
-                
+
             <input type="submit" style="visibility:hidden;" id="submit" class="btn btn-primary" value="Upload Image" name="submit">
           </th>
           <th scope="col">
@@ -383,7 +422,7 @@ function geolocate() {
         <tr>
           <th scope="col"><label>Email</label></th>
           <th scope="col"><input type="text" name="email" id="email" class="form-control" placeholder="Enter your Email address" value="<? echo $Email ?>" required></th>
-          <th scope="col"><label for="forVerification">Click to Verify</label></th>
+          <th scope="col"><label id="clicktoverify" for="forVerification"><a href="#" onclick="sendMail(event);"style="color: #F32013">Click to Verify</label></a></th>
         </tr>
         <tr>
           <th scope="col"><label>Location</label></th>
@@ -417,18 +456,17 @@ function geolocate() {
         </tr>
         </table>
         </div>
-    
-    
+
+
       <div class="tab-pane fade" id="nav-ci" role="tabpanel" aria-labelledby="nav-ci-tab">
           <table class="table"><br><br>
         <tr>
           <th scope="col">Occupation</th>
           <th scope="col"> <select name="occupation" id="occupation" style="width: 350px">
-                              <option value="empty"></option>
                               <option value="BusinessOwner">Business Owner</option>
                               <option value="Employee">Employee</option>
                               <option value="Freelancer">Freelancer</option>
-                              <option value="Other">Other</option>
+                              <option value="Other" selected>Other</option>
           </select> </th>
           <th scope="col"></th>
         </tr>
@@ -449,37 +487,37 @@ function geolocate() {
         </tr>
         </table>
         </div>
-    
-    
+
+
       <div class="tab-pane fade" id="nav-si" role="tabpanel" aria-labelledby="nav-si-tab">
           <table class="table"><br><br>
         <tr>
-          <th scope="col"><img src="assets/icons/facebook.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/facebook.png" class="social"></th>
           <th scope="col"><input value="<? echo $Facebook ?>" type="text" name="facebook" id="facebook" class="form-control" placeholder="Enter your facebook id/url"></th>
           <th scope="col"></th>
         </tr>
         <tr>
-          <th scope="col"><img src="assets/icons/twitter.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/twitter.png" class="social"></th>
           <th scope="col"><input value="<? echo $Twitter ?>" type="text" name="twitter" id="twitter" class="form-control" placeholder="Enter your twitter id/url"></th>
           <th scope="col"></th>
         </tr>
         <tr>
-          <th scope="col"><img src="assets/icons/linkedin.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/linkedin.png" class="social"></th>
           <th scope="col"><input value="<? echo $LinkedIn ?>" type="text" name="twitter" id="linkedin" class="form-control" placeholder="Enter your linkedin id/url"></th>
           <th scope="col"></th>
         </tr>
         <tr>
-          <th scope="col"><img src="assets/icons/whatsapp.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/whatsapp.png" class="social"></th>
           <th scope="col"><input value="<? echo $WhatsApp ?>" type="text" name="twitter" id="whatsapp" class="form-control" placeholder="Enter your whatsapp id/url"></th>
           <th scope="col"></th>
         </tr>
         <tr>
-          <th scope="col"><img src="assets/icons/instagram.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/instagram.png" class="social"></th>
           <th scope="col"><input value="<? echo $Instagram ?>" type="text" name="twitter" id="instagram" class="form-control" placeholder="Enter your instagram id/url"></th>
           <th scope="col"></th>
         </tr>
         <tr>
-          <th scope="col"><img src="assets/icons/youtube.png" height="30px" width="30px"></th>
+          <th scope="col" style="padding: 13px 0px 0px 0px"><img src="assets/icons/youtube.png" class="social"></th>
           <th scope="col"><input value="<? echo $Youtube ?>" type="text" name="twitter" id="youtube" class="form-control" placeholder="Enter your youtube id/url"></th>
           <th scope="col"></th>
         </tr>
@@ -491,7 +529,7 @@ function geolocate() {
         </table>
           <a href="#" class="btn btn-primary" onclick="submitBTNClicked()">Submit Form</a>
         </div>
-    
+
     </div>
     </nav>
     </div>
@@ -505,9 +543,9 @@ function geolocate() {
     </div><!-- content -->
 
     <?php include("includes/footer.php"); ?>
-    <?php include("includes/footer-js.php"); ?>    
+    <?php include("includes/footer-js.php"); ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.min.js"></script>
-    <script>        
+    <script>
         $(document).ready(function() {
             $("#sbnform").validate({
                 rules: {
@@ -517,7 +555,7 @@ function geolocate() {
                     }
                 }
             });
-        });      
-    </script>    
+        });
+    </script>
   </body>
 </html>

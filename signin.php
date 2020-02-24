@@ -5,15 +5,27 @@ include ("classes/config.inc.php");
 include ("classes/Database.class.php");
 include ("classes/functions.php");
 include ("classes/Session.class.php");
+include ("classes/Password.php");
 $sitesession = new Session();
 $sitesession->Session();
 
+$con = mysqli_connect("127.0.0.1", "root", "", "sbn_db");
+
+$qry_fetch_hash_pass = "SELECT Password FROM `members` WHERE Mobile=".$_POST['Mobile']."";
+
+if ($result = $con->query($qry_fetch_hash_pass)) {
+  while ($row = $result->fetch_row()) {
+        $hashed_password = $row[0];
+  }
+  /*echo "$memberLastName";*/
+  $result->free_result();
+}
 
 if ($_POST['btnsubmit']) {
 
     $Error=0;
     $Mobile = trim($_POST['Mobile']);
-    $Password = trim($_POST['Password']); 
+    $Password = trim($_POST['Password']);
 
     if (strlen($Mobile)!=10) {
         $Error=1;
@@ -27,6 +39,18 @@ if ($_POST['btnsubmit']) {
     if ($Error==1) {
         $Error_Message = "Sorry, we have detected issues with your submission.";
     }else {
+        
+    if (password_verify($Password, $hashed_password)) {
+            $Password = $hashed_password;
+        } else {
+            echo "work even harder . . .";
+        }
+
+    if (password_verify($Password, $hashed_password)) {
+            $Password = $hashed_password;
+        } else {
+            echo "work even harder . . .";
+        }
 
       $chkrsq = $db->query("select * from members where Mobile='".$db->escape($Mobile)."' and Password='".$db->escape($Password)."'");
       if (mysql_num_rows($chkrsq)==0) {
@@ -46,16 +70,16 @@ if ($_POST['btnsubmit']) {
             $sitesession->set('SESSIONMOBILE',$chkrs['Mobile']);
             $sitesession->set('SESSIONNAME',$chkrs['FirstName']);
 
-            
+
 
             ?><script>location.href="dashboard.php?SuccessID=<?=$id?>";</script><?
           }
-        }        
+        }
       }
     }
 }
 
-
+$con->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,9 +115,9 @@ if ($_POST['btnsubmit']) {
                 <input type="password" name="Password" id="Password" class="form-control" placeholder="" required>
               </div>
 
-              <input type="submit" name="btnsubmit" class="btn btn-brand-02 btn-block" value="Login">             
+              <input type="submit" name="btnsubmit" class="btn btn-brand-02 btn-block" value="Login">
 
-             
+
 
             </div>
 
@@ -103,15 +127,15 @@ if ($_POST['btnsubmit']) {
               </div>
 
           </div><!-- sign-wrapper -->
-          
+
         </div><!-- media -->
       </div><!-- container -->
     </div><!-- content -->
 
     <?php include("includes/footer.php"); ?>
-    <?php include("includes/footer-js.php"); ?>    
+    <?php include("includes/footer-js.php"); ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.min.js"></script>
-    <script>        
+    <script>
         $(document).ready(function() {
             $("#sbnform").validate({
                 rules: {
@@ -121,7 +145,7 @@ if ($_POST['btnsubmit']) {
                     }
                 }
             });
-        });      
-    </script>    
+        });
+    </script>
   </body>
 </html>
